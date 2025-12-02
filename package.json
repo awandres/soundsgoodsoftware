@@ -1,0 +1,25 @@
+{
+  "name": "soundsgoodsoftware",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.14.2",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "clean": "turbo clean && rm -rf node_modules",
+    "db:push": "pnpm --filter @soundsgood/db db:push",
+    "db:generate": "pnpm --filter @soundsgood/db db:generate",
+    "db:migrate": "pnpm --filter @soundsgood/db db:migrate",
+    "db:studio": "pnpm --filter @soundsgood/db db:studio",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "bcryptjs": "^2.4.3",
+    "@types/bcryptjs": "^2.4.6"
+  }
+}

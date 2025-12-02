@@ -1,0 +1,38 @@
+{
+  "name": "@soundsgood/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.943.0",
+    "@aws-sdk/lib-storage": "^3.943.0",
+    "@aws-sdk/s3-request-presigner": "^3.940.0",
+    "@soundsgood/auth": "workspace:*",
+    "@soundsgood/db": "workspace:*",
+    "@soundsgood/ui": "workspace:*",
+    "better-auth": "^1.0.0",
+    "lucide-react": "^0.460.0",
+    "next": "^15.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.10"
+  },
+  "devDependencies": {
+    "@soundsgood/config-tailwind": "workspace:*",
+    "@soundsgood/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
+  }
+}
