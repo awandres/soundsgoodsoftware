@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { fileKey, fileName, fileUrl, fileSize, mimeType, category } = body;
+    const { fileKey, fileName, fileUrl, fileSize, mimeType, category, notes, tags, altText } = body;
 
-    if (!fileKey || !fileName || !fileUrl || !category) {
+    if (!fileKey || !fileName || !fileUrl) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -95,7 +95,10 @@ export async function POST(request: NextRequest) {
         fileKey,
         fileSize,
         mimeType,
-        category,
+        category: category || "uncategorized",
+        notes: notes || null,
+        tags: tags || [],
+        altText: altText || null,
       })
       .returning();
 

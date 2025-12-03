@@ -20,12 +20,12 @@ export const documents = pgTable("documents", {
     .primaryKey()
     .$defaultFn(() => createId()),
   organizationId: text("organization_id")
-    .references(() => organizations.id)
-    .notNull(),
+    .references(() => organizations.id),
   name: text("name").notNull(),
   description: text("description"),
   type: text("type", { enum: documentTypes }).default("other"),
   fileUrl: text("file_url").notNull(),
+  fileKey: text("file_key"), // R2 object key for deletion
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
   version: integer("version").default(1),

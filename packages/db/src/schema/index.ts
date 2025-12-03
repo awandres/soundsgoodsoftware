@@ -7,4 +7,5 @@ export * from "./organizations";
 export * from "./documents";
 export * from "./photos";
 export * from "./auth";
+export * from "./projects";
 

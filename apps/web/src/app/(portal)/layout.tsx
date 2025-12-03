@@ -5,19 +5,19 @@ import {
   LayoutDashboard, 
   ImageIcon, 
   FileText, 
-  Settings, 
-  LogOut,
+  ClipboardList,
   Menu
 } from "lucide-react";
 import { Button } from "@soundsgood/ui";
 import { auth } from "@soundsgood/auth";
 import { SignOutButton } from "./SignOutButton";
+import { DevAdminBar } from "./DevAdminBar";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Photos", href: "/photos", icon: ImageIcon },
   { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Project Status", href: "/project-status", icon: ClipboardList },
 ];
 
 export default async function PortalLayout({
@@ -41,9 +41,13 @@ export default async function PortalLayout({
     : user.email.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="hidden w-64 flex-col border-r bg-card lg:flex">
+    <div className="flex min-h-screen flex-col">
+      {/* Dev Admin Bar - only shows on localhost */}
+      <DevAdminBar />
+      
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <aside className="hidden w-64 flex-col border-r bg-card lg:flex">
         {/* Logo */}
         <div className="flex h-16 items-center gap-2 border-b px-6">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
@@ -98,6 +102,7 @@ export default async function PortalLayout({
         <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
+      </div>
       </div>
     </div>
   );
