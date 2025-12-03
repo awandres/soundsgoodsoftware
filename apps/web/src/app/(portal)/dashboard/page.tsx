@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ImageIcon, FileText, Clock, ArrowRight, TrendingUp, Target, Zap } from "lucide-react";
+import { ImageIcon, FileText, ArrowRight, TrendingUp, Target, Zap } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Spinner, Badge } from "@soundsgood/ui";
 
 interface DashboardStats {
