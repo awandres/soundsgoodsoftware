@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db } from "@soundsgood/db/client";
-import { projects, projectPhases, projectTasks, projectDeadlines, users } from "@soundsgood/db/schema";
-import { eq, desc, asc } from "drizzle-orm";
+import { db, projects, projectPhases, projectTasks, projectDeadlines, users, eq, desc, asc } from "@soundsgood/db";
 
 // Check if user is admin (either by role or localhost dev mode)
 async function isAdmin(userId: string, request: NextRequest): Promise<boolean> {
@@ -45,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("id");
-    const orgId = session.user.organizationId;
+    const orgId = (session.user as any).organizationId;
 
     // Get specific project with all related data
     if (projectId) {

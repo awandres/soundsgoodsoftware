@@ -164,7 +164,8 @@ export default function PhotosPage() {
       e.preventDefault();
       addMultipleTags(tagInput);
     } else if (e.key === "Backspace" && !tagInput && tags.length > 0) {
-      removeTag(tags[tags.length - 1]);
+      const lastTag = tags[tags.length - 1];
+      if (lastTag) removeTag(lastTag);
     }
   };
 

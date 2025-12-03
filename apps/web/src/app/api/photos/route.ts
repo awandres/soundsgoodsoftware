@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db } from "@soundsgood/db/client";
-import { photos } from "@soundsgood/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { db, photos, eq, and, desc } from "@soundsgood/db";
 import { deleteFromR2 } from "@/lib/r2";
 
 /**
@@ -23,8 +21,8 @@ export async function GET(request: NextRequest) {
       .select()
       .from(photos)
       .where(
-        session.user.organizationId
-          ? eq(photos.organizationId, session.user.organizationId)
+        (session.user as any).organizationId
+          ? eq(photos.organizationId, (session.user as any).organizationId)
           : eq(photos.uploadedBy, session.user.id)
       )
       .orderBy(desc(photos.createdAt));
@@ -69,8 +67,8 @@ export async function DELETE(request: NextRequest) {
       .where(
         and(
           eq(photos.id, photoId),
-          session.user.organizationId
-            ? eq(photos.organizationId, session.user.organizationId)
+          (session.user as any).organizationId
+            ? eq(photos.organizationId, (session.user as any).organizationId)
             : eq(photos.uploadedBy, session.user.id)
         )
       )

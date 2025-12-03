@@ -11,3 +11,6 @@ export * from "./schema";
 // Re-export utilities
 export { createId, slugify } from "./utils";
 
+// Re-export commonly used drizzle-orm functions
+export { eq, and, or, not, desc, asc, sql, gte, lte, like, ilike } from "drizzle-orm";
+

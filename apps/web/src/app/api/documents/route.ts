@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db } from "@soundsgood/db/client";
-import { documents } from "@soundsgood/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { db, documents, eq, and, desc } from "@soundsgood/db";
 import { deleteFromR2, getUploadUrl, getPublicUrl, generateFileKey } from "@/lib/r2";
 
 /**
@@ -27,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (fileName && fileType) {
       const fileKey = generateFileKey(
         session.user.id,
-        session.user.organizationId || null,
+        (session.user as any).organizationId || null,
         fileName,
         "documents"
       );
@@ -47,8 +45,8 @@ export async function GET(request: NextRequest) {
       .select()
       .from(documents)
       .where(
-        session.user.organizationId
-          ? eq(documents.organizationId, session.user.organizationId)
+        (session.user as any).organizationId
+          ? eq(documents.organizationId, (session.user as any).organizationId)
           : eq(documents.uploadedBy, session.user.id)
       )
       .orderBy(desc(documents.createdAt));
@@ -90,7 +88,7 @@ export async function POST(request: NextRequest) {
     const [newDocument] = await db
       .insert(documents)
       .values({
-        organizationId: session.user.organizationId || null,
+        organizationId: (session.user as any).organizationId || null,
         uploadedBy: session.user.id,
         name,
         fileUrl,
@@ -142,8 +140,8 @@ export async function DELETE(request: NextRequest) {
       .where(
         and(
           eq(documents.id, documentId),
-          session.user.organizationId
-            ? eq(documents.organizationId, session.user.organizationId)
+          (session.user as any).organizationId
+            ? eq(documents.organizationId, (session.user as any).organizationId)
             : eq(documents.uploadedBy, session.user.id)
         )
       )

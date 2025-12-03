@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db } from "@soundsgood/db/client";
-import { photos, documents, projects, projectPhases } from "@soundsgood/db/schema";
-import { eq, desc, sql, asc } from "drizzle-orm";
+import { db, photos, documents, projects, projectPhases, eq, desc, sql, asc } from "@soundsgood/db";
 
 /**
  * GET - Dashboard stats and recent activity
@@ -18,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const orgId = session.user.organizationId;
+    const orgId = (session.user as any).organizationId;
 
     // Get photo count
     const photoCountResult = await db

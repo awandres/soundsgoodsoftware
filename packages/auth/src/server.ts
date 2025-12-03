@@ -52,8 +52,8 @@ export const auth = betterAuth({
   
   // Advanced configuration
   advanced: {
-    generateId: () => crypto.randomUUID(),
-  },
+    generateId: () => crypto.randomUUID() as any,
+  } as any,
 });
 
 // Export types

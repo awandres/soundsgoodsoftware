@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Generate unique file key
     const fileKey = generateFileKey(
       session.user.id,
-      session.user.organizationId || null,
+      (session.user as any).organizationId || null,
       fileName,
       category
     );
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     const [newPhoto] = await db
       .insert(photos)
       .values({
-        organizationId: session.user.organizationId || null,
+        organizationId: (session.user as any).organizationId || null,
         uploadedBy: session.user.id,
         fileName,
         fileUrl,
