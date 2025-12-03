@@ -12,7 +12,6 @@ import {
   X,
   Clock,
   Save,
-  ExternalLink,
 } from "lucide-react";
 import {
   Button,
@@ -23,7 +22,6 @@ import {
   Spinner,
   Input,
   Label,
-  Badge,
 } from "@soundsgood/ui";
 
 const DOCUMENT_TYPES = [

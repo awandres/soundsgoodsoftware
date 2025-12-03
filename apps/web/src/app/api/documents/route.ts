@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const fileName = searchParams.get("fileName");
     const fileType = searchParams.get("fileType");
-    const docType = searchParams.get("type");
 
     // If fileName and fileType provided, generate presigned upload URL
     if (fileName && fileType) {

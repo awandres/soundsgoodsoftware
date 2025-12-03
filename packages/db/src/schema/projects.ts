@@ -1,7 +1,6 @@
 import { pgTable, text, timestamp, integer, boolean, json } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { organizations } from "./organizations";
-import { users } from "./users";
 import { createId } from "../utils";
 
 // =============================================================================
