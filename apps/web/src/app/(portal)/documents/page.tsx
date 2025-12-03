@@ -208,8 +208,11 @@ export default function DocumentsPage() {
     }
   };
 
-  const getTypeConfig = (type: string) => {
-    return DOCUMENT_TYPES.find((t) => t.value === type) || DOCUMENT_TYPES[4]; // Default to "other"
+  const getTypeConfig = (type: string): typeof DOCUMENT_TYPES[number] => {
+    const found = DOCUMENT_TYPES.find((t) => t.value === type);
+    if (found) return found;
+    // Default to "other" type
+    return { value: "other", label: "Other", icon: "📎", color: "bg-gray-100 text-gray-700" };
   };
 
   return (
