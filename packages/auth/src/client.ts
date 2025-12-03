@@ -6,7 +6,8 @@ import { createAuthClient } from "better-auth/react";
  * Better Auth client for React components
  * Use this in client components for auth operations
  */
-const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// Strip trailing slashes from URL to avoid double slashes in API calls
+const baseURL = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 
 // Log the auth client configuration for debugging
 if (typeof window !== "undefined") {

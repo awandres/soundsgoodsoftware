@@ -7,7 +7,17 @@ import * as schema from "@soundsgood/db";
  * Better Auth server configuration
  * This is the main auth instance used on the server
  */
+// Strip trailing slashes from URLs
+const stripTrailingSlash = (url: string) => url.replace(/\/$/, "");
+
 export const auth = betterAuth({
+  // Base URL for the application
+  baseURL: stripTrailingSlash(
+    process.env.BETTER_AUTH_URL || 
+    process.env.NEXT_PUBLIC_APP_URL || 
+    "http://localhost:3000"
+  ),
+  
   // Use Drizzle adapter with our database
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -50,9 +60,19 @@ export const auth = betterAuth({
     },
   },
   
+  // Trust proxy headers (required for Vercel/production)
+  trustedOrigins: process.env.BETTER_AUTH_URL 
+    ? [process.env.BETTER_AUTH_URL]
+    : [],
+  
   // Advanced configuration
   advanced: {
     generateId: () => crypto.randomUUID() as any,
+    useSecureCookies: process.env.NODE_ENV === "production",
+    cookieSameSite: "lax",
+    crossSubDomainCookies: {
+      enabled: false,
+    },
   } as any,
 });
 
