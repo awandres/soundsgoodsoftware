@@ -306,6 +306,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       invitation,
       emailSent: emailResult.success,
+      emailError: emailResult.success ? undefined : String(emailResult.error),
       inviteLink, // Include for development/testing
     });
   } catch (error) {

@@ -187,6 +187,8 @@ ${APP_NAME}
 
   try {
     const resend = getResendClient();
+    console.log(`📧 Attempting to send invitation email to: ${to}, from: ${FROM_EMAIL}`);
+    
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
@@ -195,10 +197,16 @@ ${APP_NAME}
       text,
     });
 
+    if (result.error) {
+      console.error("Resend API returned error:", result.error);
+      return { success: false, error: result.error };
+    }
+
+    console.log(`✅ Email sent successfully, id: ${result.data?.id}`);
     return { success: true, data: result };
   } catch (error) {
     console.error("Failed to send invitation email:", error);
-    return { success: false, error };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
