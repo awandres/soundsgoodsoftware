@@ -33,6 +33,7 @@ const businessTypeLabels: Record<string, string> = {
 export function DevAdminBar() {
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isRealAdmin, setIsRealAdmin] = useState(false); // Actual admin role from database
   const [isLoading, setIsLoading] = useState(true);
   
   // Business type state
@@ -47,25 +48,48 @@ export function DevAdminBar() {
       window.location.hostname === "127.0.0.1";
     setIsLocalhost(localhost);
 
+    // Always check if user is a real admin (from database role)
+    checkUserRole();
+    
+    // Also check dev admin mode status and business types
+    checkAdminStatus();
     if (localhost) {
-      checkAdminStatus();
       fetchBusinessType();
-    } else {
-      setIsLoading(false);
     }
   }, []);
+
+  // Check if user has actual admin role in database
+  const checkUserRole = async () => {
+    try {
+      const response = await fetch("/api/dashboard");
+      if (response.ok) {
+        const data = await response.json();
+        const userIsAdmin = data.role === "admin";
+        setIsRealAdmin(userIsAdmin);
+        // If user is a real admin, automatically enable admin mode
+        if (userIsAdmin) {
+          setIsAdmin(true);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to check user role:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const checkAdminStatus = async () => {
     try {
       const response = await fetch("/api/dev/admin-mode");
       if (response.ok) {
         const data = await response.json();
-        setIsAdmin(data.isDevAdmin);
+        // Only set from cookie if not already set by real admin status
+        if (!isRealAdmin) {
+          setIsAdmin(data.isDevAdmin);
+        }
       }
     } catch (err) {
       console.error("Failed to check admin status:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -125,8 +149,13 @@ export function DevAdminBar() {
     }
   };
 
-  // Don't render anything if not localhost or still loading
-  if (!isLocalhost || isLoading) {
+  // Show dev tools if:
+  // 1. User is a real admin (always, regardless of localhost)
+  // 2. On localhost (for any user)
+  const shouldShowDevTools = isRealAdmin || isLocalhost;
+
+  // Don't render anything if shouldn't show or still loading
+  if (!shouldShowDevTools || isLoading) {
     return null;
   }
 
@@ -136,9 +165,15 @@ export function DevAdminBar() {
         <div className="flex items-center gap-2">
           <Settings className="h-4 w-4 text-orange-600" />
           <span className="text-sm font-medium text-orange-900">Dev Tools</span>
-          <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600">
-            localhost only
-          </Badge>
+          {isRealAdmin ? (
+            <Badge variant="outline" className="text-[10px] border-green-400 text-green-700 bg-green-50">
+              Admin Account
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600">
+              localhost only
+            </Badge>
+          )}
           {isAdmin && (
             <span className="text-xs text-orange-700 ml-2">
               • Admin mode active — you can edit deliverables
