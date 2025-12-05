@@ -48,7 +48,6 @@ import {
   Users,
   Copy,
   Check,
-  Upload,
   Building2,
   Palette,
   Crown,
@@ -64,7 +63,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
-import { getContrastRatio, meetsWCAG, getContrastRating, suggestAccessibleColor } from "@/lib/colorUtils";
+import { meetsWCAG, getContrastRating, suggestAccessibleColor } from "@/lib/colorUtils";
 
 // Business types and labels imported from shared config
 const businessTypes = [
@@ -230,36 +229,30 @@ export default function ClientsPage() {
   };
 
   const primaryContrast = getColorContrast(useEmailColors ? emailPrimaryColor : primaryColor);
-  const secondaryContrast = getColorContrast(useEmailColors ? emailSecondaryColor : secondaryColor);
 
-  // Fetch data with abort support
+  // Fetch invitations (can be called from multiple places)
+  const fetchInvitations = async () => {
+    try {
+      const response = await fetch("/api/invitations");
+      if (!response.ok) {
+        if (response.status === 403) {
+          setError("You don't have permission to view this page");
+          return;
+        }
+        throw new Error("Failed to fetch invitations");
+      }
+      const data = await response.json();
+      setInvitations(data.invitations || []);
+    } catch (err) {
+      setError("Failed to load invitations");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch data on mount
   useEffect(() => {
     const abortController = new AbortController();
-
-    const fetchInvitations = async () => {
-      try {
-        const response = await fetch("/api/invitations", {
-          signal: abortController.signal,
-        });
-        if (!response.ok) {
-          if (response.status === 403) {
-            setError("You don't have permission to view this page");
-            return;
-          }
-          throw new Error("Failed to fetch invitations");
-        }
-        const data = await response.json();
-        setInvitations(data.invitations || []);
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          setError("Failed to load invitations");
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
 
     const fetchProjects = async () => {
       try {

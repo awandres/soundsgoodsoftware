@@ -139,7 +139,7 @@ export async function GET(
         if (!tasksByPhase[task.phaseId]) {
           tasksByPhase[task.phaseId] = [];
         }
-        tasksByPhase[task.phaseId].push(task);
+        tasksByPhase[task.phaseId]!.push(task);
       } else {
         unassignedTasks.push(task);
       }

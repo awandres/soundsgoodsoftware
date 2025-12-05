@@ -4,8 +4,6 @@ import {
   db, 
   projects, 
   projectPhases, 
-  projectTasks, 
-  projectDeadlines, 
   organizations,
   users, 
   eq, 

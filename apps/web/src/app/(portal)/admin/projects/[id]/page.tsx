@@ -2,23 +2,14 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowLeft,
-  Building2,
-  Calendar,
-  Clock,
   Target,
   AlertCircle,
-  CheckCircle2,
-  Loader2,
   Pencil,
-  ExternalLink,
-  ChevronDown,
   ChevronRight,
   ListTodo,
   CalendarClock,
-  Users,
   Layers,
   CircleDot,
   Circle,
@@ -35,7 +26,6 @@ import {
   Badge,
   Button,
   Progress,
-  Separator,
 } from "@soundsgood/ui";
 import { LoadingScreen } from "@/components/LoadingScreen";
 

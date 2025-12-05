@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
       organizationId, 
       organizationData,
       projectId,         // Existing project to assign
-      projectName,       // New project name to create
       brandColors: brandColorsInput,  // Brand colors to update (for existing org/project)
       message, 
       role = "client",

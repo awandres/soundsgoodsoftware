@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@soundsgood/auth";
 import { 
   db, 
   organizations, 
@@ -15,7 +14,7 @@ const isDev = process.env.NODE_ENV === "development";
 /**
  * GET - Get current demo business type and available options
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   if (!isDev) {
     return NextResponse.json({ error: "Not available in production" }, { status: 403 });
   }
@@ -104,6 +103,10 @@ export async function POST(request: NextRequest) {
       })
       .where(eq(organizations.id, demoOrg.id))
       .returning();
+
+    if (!updated) {
+      return NextResponse.json({ error: "Failed to update organization" }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,

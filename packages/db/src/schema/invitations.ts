@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { organizations, BrandColors } from "./organizations";
 import { projects } from "./projects";
-import { users, AccountType, accountTypes } from "./users";
+import { users, accountTypes } from "./users";
 import { BusinessType } from "./business-types";
 import { createId } from "../utils";
 

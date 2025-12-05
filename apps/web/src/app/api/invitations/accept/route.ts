@@ -9,7 +9,6 @@ import {
   eq, 
   and,
   slugify,
-  createId,
   OrganizationSetupData,
   getPhotoTagsForBusinessType,
   AccountType,
@@ -251,6 +250,10 @@ export async function POST(request: NextRequest) {
           },
         })
         .returning();
+
+      if (!newOrg) {
+        return NextResponse.json({ error: "Failed to create organization" }, { status: 500 });
+      }
 
       organizationId = newOrg.id;
       createdOrganization = newOrg;

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
 import { 
-  getContrastRatio, 
   meetsWCAG, 
   getContrastRating,
   suggestAccessibleColor 
@@ -65,7 +64,6 @@ function getContrastColor(hexColor: string): string {
  * Generate invitation email HTML (matches email.ts format)
  */
 function generateInvitationEmailHtml({
-  email,
   name,
   organizationName,
   brandColors,

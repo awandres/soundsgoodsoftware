@@ -107,13 +107,6 @@ function formatDocTypes(types: string[]): string {
   return `${types.slice(0, 2).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(", ")} +${types.length - 2} more`;
 }
 
-// Format date
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "TBD";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 // Get status color
 function getStatusColor(status: string) {
   switch (status) {
@@ -237,7 +230,7 @@ function DashboardContent() {
         // Pin (max 2)
         if (prev.length >= 2) {
           // Replace the oldest pinned project
-          newPinned = [prev[1], projectId];
+          newPinned = [prev[1] ?? projectId, projectId];
         } else {
           newPinned = [...prev, projectId];
         }

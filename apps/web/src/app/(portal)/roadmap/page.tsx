@@ -1008,7 +1008,9 @@ export default function RoadmapPage() {
               </p>
 
               {/* Selected Feature Detail View */}
-              {selectedFeature !== null && (
+              {selectedFeature !== null && roadmap.features[selectedFeature] && (() => {
+                const feature = roadmap.features[selectedFeature]!;
+                return (
                 <div className="mb-8 relative">
                   {/* Navigation Arrows */}
                   <button
@@ -1027,19 +1029,19 @@ export default function RoadmapPage() {
                     <ChevronRight className="w-5 h-5" />
                   </button>
 
-                  <div className={`rounded-xl overflow-hidden border-2 ${roadmap.features[selectedFeature].color}`}>
-                    <div className={`bg-gradient-to-r ${roadmap.features[selectedFeature].bgGradient} p-6 text-white`}>
+                  <div className={`rounded-xl overflow-hidden border-2 ${feature.color}`}>
+                    <div className={`bg-gradient-to-r ${feature.bgGradient} p-6 text-white`}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-4">
-                          <span className="text-5xl">{roadmap.features[selectedFeature].icon}</span>
+                          <span className="text-5xl">{feature.icon}</span>
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-2xl font-bold">{roadmap.features[selectedFeature].title}</h3>
+                              <h3 className="text-2xl font-bold">{feature.title}</h3>
                               <span className="text-sm bg-white/20 px-2 py-0.5 rounded-full">
                                 {selectedFeature + 1} of {roadmap.features.length}
                               </span>
                             </div>
-                            <p className="text-white/90">{roadmap.features[selectedFeature].detailedDescription}</p>
+                            <p className="text-white/90">{feature.detailedDescription}</p>
                           </div>
                         </div>
                         <button 
@@ -1059,10 +1061,10 @@ export default function RoadmapPage() {
                             Key Features
                           </h4>
                           <ul className="space-y-2">
-                            {roadmap.features[selectedFeature].features.map((feature, idx) => (
+                            {feature.features.map((f, idx) => (
                               <li key={idx} className="flex items-start gap-2 text-sm">
-                                <span className={roadmap.features[selectedFeature].textColor}>•</span>
-                                <span>{feature}</span>
+                                <span className={feature.textColor}>•</span>
+                                <span>{f}</span>
                               </li>
                             ))}
                           </ul>
@@ -1074,7 +1076,7 @@ export default function RoadmapPage() {
                             Business Benefits
                           </h4>
                           <ul className="space-y-2">
-                            {roadmap.features[selectedFeature].benefits.map((benefit, idx) => (
+                            {feature.benefits.map((benefit, idx) => (
                               <li key={idx} className="flex items-start gap-2 text-sm">
                                 <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                                 <span>{benefit}</span>
@@ -1086,7 +1088,8 @@ export default function RoadmapPage() {
                     </div>
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* Feature Cards Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

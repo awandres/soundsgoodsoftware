@@ -3,10 +3,6 @@
 import { useState, useEffect } from "react";
 import {
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Badge,
   Spinner,
 } from "@soundsgood/ui";

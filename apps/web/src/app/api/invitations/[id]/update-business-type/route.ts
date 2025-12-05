@@ -95,6 +95,10 @@ export async function POST(
       .where(eq(invitations.id, id))
       .returning();
 
+    if (!updated) {
+      return NextResponse.json({ error: "Failed to update invitation" }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
       invitation: {

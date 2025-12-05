@@ -7,10 +7,7 @@ import {
   Pencil,
   Trash2,
   Building2,
-  Calendar,
   Clock,
-  Target,
-  ChevronRight,
   AlertCircle,
   CheckCircle2,
   Loader2,
@@ -18,17 +15,13 @@ import {
   FolderKanban,
   PlayCircle,
   PauseCircle,
-  XCircle,
   TrendingUp,
 } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Badge,
   Button,
-  Spinner,
   Input,
   Label,
   Textarea,
@@ -271,10 +264,10 @@ export default function AdminProjectsPage() {
       status: project.status,
       organizationId: project.organizationId || "",
       projectType: project.projectType || "",
-      startDate: project.startDate ? project.startDate.split("T")[0] : "",
-      targetEndDate: project.targetEndDate ? project.targetEndDate.split("T")[0] : "",
+      startDate: project.startDate ? String(project.startDate).split("T")[0] ?? "" : "",
+      targetEndDate: project.targetEndDate ? String(project.targetEndDate).split("T")[0] ?? "" : "",
       totalWeeks: project.totalWeeks?.toString() || "",
-      agreementDate: project.agreementDate ? project.agreementDate.split("T")[0] : "",
+      agreementDate: project.agreementDate ? String(project.agreementDate).split("T")[0] ?? "" : "",
     });
     setShowEditDialog(true);
   };

@@ -14,7 +14,7 @@ import {
   Square,
   CheckSquare,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, Badge, Spinner } from "@soundsgood/ui";
+import { Card, CardContent, CardHeader, CardTitle, Badge } from "@soundsgood/ui";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 // Deliverable type with completion status
