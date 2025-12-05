@@ -769,6 +769,24 @@ Before finishing your session, ensure:
 
 ---
 
+## 👤 User Preferences
+
+These are specific preferences from the project owner that all AI agents should follow:
+
+### UX Testing
+- **Do NOT demo the UX in the browser** - The user prefers to test the UX themselves
+- When features are complete, simply let the user know it's ready for testing
+- Provide a summary of what was built and how to test it
+
+### Feature Completion
+When completing a feature:
+1. Summarize what was built
+2. List any new credentials, URLs, or environment variables
+3. Note any manual steps needed (like running migrations or restarting the server)
+4. Let the user know it's ready for them to test
+
+---
+
 ## 💬 Communication Patterns
 
 ### Leaving Notes for Other Agents

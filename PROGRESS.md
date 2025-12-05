@@ -1,6 +1,6 @@
 # SoundsGood Software – Progress Tracker
 
-> **Last Updated:** November 27, 2024
+> **Last Updated:** December 5, 2024
 > 
 > This file tracks the current state of development. AI agents should update this as they complete work.
 
@@ -53,6 +53,36 @@
 - Auth is wired up but needs DATABASE_URL to function
 - Portal layout redirects to /login if no session
 - UI package significantly expanded - ready for full feature build
+
+---
+
+### Session 3: Roadmap & Invitations Agent (Dec 5, 2024)
+**Agent Branch:** `main` (continuing)
+
+**Work Completed:**
+- ✅ Created dynamic Roadmap page with org-specific content
+  - Vetted Trainers: Full pricing ($6,000), timeline, support terms
+  - Demo accounts: Generic version with XXXX placeholders
+- ✅ Added roadmap to portal navigation
+- ✅ Enhanced invitation flow for existing projects:
+  - Auto-populate brand colors from project's organization
+  - "Loaded from project" indicator in branding tab
+  - Project dropdown shows color dots for orgs with branding
+  - Email header preview using brand colors
+- ✅ Fixed invitation bugs:
+  - Invitations to existing projects now inherit organizationId
+  - Users accepting invitations assigned to correct org
+  - No duplicate projects created
+- ✅ Created Vetted Trainers project with MOU details:
+  - Agreement date, contract value, timeline
+  - 3 milestones with payment triggers
+  - Initial phases and deliverables
+- ✅ Created CHANGELOG.md for tracking changes
+
+**Handoff Notes:**
+- Roadmap page dynamically shows content based on user's organization
+- Brand colors flow: select project → colors populate → modify if needed → saved to org
+- Vetted Trainers project seeded and ready for client use
 
 ---
 
@@ -252,6 +282,7 @@ pnpm dev --filter @soundsgood/web
 | 0.1.0 | Nov 27, 2024 | Initial planning phase |
 | 0.2.0 | Nov 27, 2024 | Foundation Agent: Monorepo + UI scaffolding |
 | 0.3.0 | Nov 27, 2024 | Auth Agent: Auth wiring + expanded UI components |
+| 0.4.0 | Dec 5, 2024 | Roadmap page, invitation brand colors, VT project setup |
 
 ---
 

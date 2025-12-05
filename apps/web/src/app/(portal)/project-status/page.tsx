@@ -15,6 +15,7 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, Badge, Spinner } from "@soundsgood/ui";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 // Deliverable type with completion status
 interface Deliverable {
@@ -27,12 +28,14 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
-  clientName: string;
+  clientName: string | null;  // Now optional
   status: string;
   startDate: string | null;
   targetEndDate: string | null;
   totalWeeks: number | null;
   agreementDate: string | null;
+  projectType: string | null;
+  deliverables: Record<string, unknown> | null;
 }
 
 interface ProjectPhase {
@@ -73,6 +76,8 @@ interface ProjectStats {
   currentWeek: number;
   weeksRemaining: number | null;
   progressPercent: number;
+  hasPhases: boolean;
+  isSetupIncomplete: boolean;
 }
 
 function getStatusIcon(status: string) {
@@ -247,11 +252,7 @@ export default function ProjectStatusPage() {
 
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <LoadingScreen message="Loading project timeline..." />;
   }
 
   if (error || !project) {
@@ -272,11 +273,13 @@ export default function ProjectStatusPage() {
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
           <span>Project for</span>
-          <Badge variant="outline" className="font-semibold">{project.clientName}</Badge>
+          <Badge variant="outline" className="font-semibold">
+            {project.clientName || "Unassigned"}
+          </Badge>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Project Status</h1>
         <p className="mt-2 text-muted-foreground">
-          {project.name} • Agreement signed {formatDate(project.agreementDate)}
+          {project.name} • {project.agreementDate ? `Agreement signed ${formatDate(project.agreementDate)}` : "Agreement pending"}
         </p>
       </div>
 
@@ -324,7 +327,9 @@ export default function ProjectStatusPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">Week {stats?.currentWeek || 1}</p>
-            <p className="text-xs text-muted-foreground">of {project.totalWeeks || 12} weeks</p>
+            <p className="text-xs text-muted-foreground">
+              {project.totalWeeks ? `of ${project.totalWeeks} weeks` : "Timeline TBD"}
+            </p>
           </CardContent>
         </Card>
 
@@ -357,6 +362,17 @@ export default function ProjectStatusPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {phases.length === 0 ? (
+                <div className="py-8 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Clock className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="font-semibold text-muted-foreground">No phases defined yet</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Project phases will appear here once they&apos;re set up.
+                  </p>
+                </div>
+              ) : (
               <div className="space-y-6">
                 {phases.map((phase, index) => (
                   <div key={phase.id} className="relative flex gap-4">
@@ -450,6 +466,7 @@ export default function ProjectStatusPage() {
                   </div>
                 ))}
               </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -529,10 +546,12 @@ export default function ProjectStatusPage() {
               <MessageSquare className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-blue-900">Questions about your {project.clientName} platform?</h3>
+              <h3 className="font-semibold text-blue-900">
+                Questions about your {project.clientName || project.name} platform?
+              </h3>
               <p className="mt-1 text-sm text-blue-800">
                 Your custom business management platform is on track! Remember, the sooner we receive 
-                your trainer photos, facility images, and Google Sheets data, the faster we can move 
+                your photos, facility images, and data, the faster we can move 
                 into development. Questions about the timeline or deliverables? Just reach out.
               </p>
               <p className="mt-2 text-sm text-blue-800">

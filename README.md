@@ -61,6 +61,9 @@ SoundsGood Software is a comprehensive platform that serves three core purposes:
 - [🎯 MVP](./MVP.md) – Focused MVP plan for Vetted Trainers
 - [🤖 AI Dev Guide](./AI_DEVELOPMENT_GUIDE.md) – **For AI agents: parallel development conventions**
 - [📊 Progress](./PROGRESS.md) – Current sprint status and tracking
+- [📝 Changelog](./CHANGELOG.md) – Version history and recent changes
+- [📌 Current Status](./CURRENT_STATUS.md) – Feature status and TODOs
+- [🚀 Deployment](./DEPLOYMENT.md) – Production deployment guide
 - [💡 Ideas](./IDEAS.md) – Future possibilities and brainstorms
 
 ## Getting Started
@@ -80,5 +83,5 @@ pnpm dev
 
 ---
 
-**Status:** 🟡 Planning Phase
+**Status:** 🟢 Active Development (MVP Phase)
 

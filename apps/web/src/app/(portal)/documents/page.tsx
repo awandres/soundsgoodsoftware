@@ -68,24 +68,36 @@ export default function DocumentsPage() {
   const [selectedType, setSelectedType] = useState("other");
   const [description, setDescription] = useState("");
 
-  // Fetch existing documents
+  // Fetch existing documents with abort support
   useEffect(() => {
-    fetchDocuments();
-  }, []);
-
-  const fetchDocuments = async () => {
-    try {
-      const response = await fetch("/api/documents");
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data.documents);
+    const abortController = new AbortController();
+    
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch("/api/documents", {
+          signal: abortController.signal,
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDocuments(data.documents);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error("Failed to fetch documents:", error);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
       }
-    } catch (error) {
-      console.error("Failed to fetch documents:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchDocuments();
+    
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
   // Stage files when dropped
   const onDrop = useCallback((acceptedFiles: File[]) => {

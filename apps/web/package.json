@@ -14,6 +14,7 @@
     "@aws-sdk/client-s3": "^3.943.0",
     "@aws-sdk/lib-storage": "^3.943.0",
     "@aws-sdk/s3-request-presigner": "^3.940.0",
+    "@react-email/components": "^1.0.1",
     "@soundsgood/auth": "workspace:*",
     "@soundsgood/db": "workspace:*",
     "@soundsgood/ui": "workspace:*",
@@ -22,7 +23,8 @@
     "next": "^15.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-dropzone": "^14.2.10"
+    "react-dropzone": "^14.2.10",
+    "resend": "^6.5.2"
   },
   "devDependencies": {
     "@soundsgood/config-tailwind": "workspace:*",

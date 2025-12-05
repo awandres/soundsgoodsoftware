@@ -71,6 +71,22 @@ The first client using this portal is **Vetted Trainers**, a personal training b
 - Toggle admin mode to edit deliverables
 - Persists via cookie for session
 
+### ✅ Client Invitations (NEW - Dec 2024)
+- **Email invitations** with branded templates
+- **Brand color selection** in invitation form
+- **Existing project attachment** - invite users to specific projects
+- **Auto-populate colors** when selecting existing project
+- **Email preview** with brand colors
+- **Custom email colors** option for different email styling
+
+### ✅ Roadmap Page (NEW - Dec 2024)
+- **Organization-specific roadmaps**:
+  - Vetted Trainers: Full details with real pricing, timeline, support terms
+  - Demo accounts: Generic version with placeholder values
+- **Interactive sections**: Contract overview, payment schedule, milestones
+- **Feature showcase**: Clickable cards with detailed descriptions
+- **Client responsibilities** and software ownership sections
+
 ---
 
 ## Technical Stack
@@ -192,6 +208,19 @@ R2_PUBLIC_URL=https://your-r2-public-url
 - [ ] Task completion by client (read-only currently)
 - [ ] Email notifications for deadlines
 
+### Client Invitations
+- [x] Invitation to existing project - now working
+- [x] Brand colors flow - auto-populate and update org
+- [ ] Bulk invitation import (CSV)
+- [ ] Invitation templates
+
+### Roadmap Page
+- [x] Dynamic roadmap based on organization
+- [x] Vetted Trainers specific view
+- [x] Generic demo view
+- [ ] Admin editing of roadmap content
+- [ ] Roadmap stored in database (currently hardcoded)
+
 ### General
 - [ ] Mobile navigation drawer not functional
 - [ ] No dark mode
@@ -262,5 +291,5 @@ pnpm build --filter @soundsgood/web
 
 ---
 
-*Last updated: December 2024*
+*Last updated: December 5, 2024*
 

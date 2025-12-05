@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db, photos, documents, projects, projectPhases, eq, desc, sql, asc } from "@soundsgood/db";
+import { 
+  db, 
+  photos, 
+  documents, 
+  projects, 
+  projectPhases, 
+  organizations,
+  users, 
+  eq, 
+  desc, 
+  sql, 
+  asc,
+  calculateCurrentWeek,
+  calculateProjectProgress,
+  calculateWeeksRemaining,
+} from "@soundsgood/db";
 
 /**
  * GET - Dashboard stats and recent activity
@@ -17,6 +32,25 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
     const orgId = (session.user as any).organizationId;
+
+    // Check if user is admin (from database, not cached session)
+    const [userRecord] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const isAdmin = userRecord?.role === "admin";
+
+    // Get organization info
+    let organizationName = null;
+    if (orgId) {
+      const [org] = await db
+        .select({ name: organizations.name })
+        .from(organizations)
+        .where(eq(organizations.id, orgId))
+        .limit(1);
+      organizationName = org?.name || null;
+    }
 
     // Get photo count
     const photoCountResult = await db
@@ -132,7 +166,7 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (project) {
-      // Get phases for this project
+      // Get phases for this project (may be empty for new projects)
       const phases = await db
         .select()
         .from(projectPhases)
@@ -143,21 +177,28 @@ export async function GET(request: NextRequest) {
       const completedPhases = phases.filter(p => p.status === "completed").length;
       const totalPhases = phases.length;
 
-      // Calculate progress
-      const progressPercent = totalPhases > 0 
-        ? Math.round(((completedPhases + (currentPhase ? 0.5 : 0)) / totalPhases) * 100)
-        : 0;
+      // Calculate progress - handles case with no phases
+      const progressPercent = calculateProjectProgress({
+        completedPhases,
+        totalPhases,
+        currentPhaseInProgress: !!currentPhase,
+      });
 
-      // Calculate weeks
-      const startDate = project.startDate ? new Date(project.startDate) : new Date(project.agreementDate || Date.now());
-      const now = new Date();
-      const currentWeek = Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)));
+      // Calculate current week - handles null startDate
+      const currentWeek = calculateCurrentWeek(project.startDate || project.agreementDate);
+
+      // Calculate weeks remaining - handles null targetEndDate
+      const weeksRemaining = calculateWeeksRemaining(project.targetEndDate);
+
+      // Flag indicating if project setup is incomplete
+      const isSetupIncomplete = totalPhases === 0 || !project.startDate;
 
       projectInfo = {
         id: project.id,
         name: project.name,
-        clientName: project.clientName,
-        status: project.status,
+        // Use null-safe values - frontend will display "Unassigned" or "TBD" as needed
+        clientName: project.clientName || null,
+        status: project.status || "planning",
         currentPhase: currentPhase ? {
           id: currentPhase.id,
           name: currentPhase.name,
@@ -167,8 +208,15 @@ export async function GET(request: NextRequest) {
         completedPhases,
         progressPercent,
         currentWeek,
-        totalWeeks: project.totalWeeks || 12,
+        // Pass null if not set, frontend handles display
+        totalWeeks: project.totalWeeks,
         targetEndDate: project.targetEndDate,
+        weeksRemaining,
+        // Additional flags for UI
+        isSetupIncomplete,
+        hasPhases: totalPhases > 0,
+        projectType: project.projectType || null,
+        deliverables: project.deliverables || null,
       };
     }
 
@@ -181,6 +229,8 @@ export async function GET(request: NextRequest) {
       },
       recentActivity,
       project: projectInfo,
+      organizationName,
+      isAdmin,
     });
   } catch (error) {
     console.error("Dashboard API error:", error);

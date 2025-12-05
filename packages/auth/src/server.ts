@@ -32,7 +32,7 @@ export const auth = betterAuth({
   // Email/password authentication
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Set to true in production
+    requireEmailVerification: process.env.NODE_ENV === "production", // Enabled in production
   },
   
   // Session configuration
@@ -42,6 +42,28 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5, // 5 minutes
+    },
+  },
+  
+  // Rate limiting for security
+  rateLimit: {
+    enabled: true,
+    window: 60, // 1 minute window
+    max: 10, // Max 10 requests per window for auth endpoints
+    // Custom limits for specific endpoints
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 5, // More strict for login attempts
+      },
+      "/sign-up/email": {
+        window: 60,
+        max: 3, // Very strict for sign-ups
+      },
+      "/forgot-password": {
+        window: 300, // 5 minute window
+        max: 3, // Only 3 password reset requests per 5 minutes
+      },
     },
   },
   

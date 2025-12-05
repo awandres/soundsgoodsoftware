@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db, photos, eq, and, desc } from "@soundsgood/db";
+import { db, photos, eq, and, desc, or } from "@soundsgood/db";
 import { deleteFromR2 } from "@/lib/r2";
 
 /**
- * GET - List user's photos
+ * GET - List user's photos (respects visibility based on accountType)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -16,16 +16,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch photos for this user/organization (newest first)
-    const userPhotos = await db
-      .select()
-      .from(photos)
-      .where(
-        (session.user as any).organizationId
-          ? eq(photos.organizationId, (session.user as any).organizationId)
-          : eq(photos.uploadedBy, session.user.id)
-      )
-      .orderBy(desc(photos.createdAt));
+    const user = session.user as any;
+    let userPhotos;
+
+    // Admins and staff see all photos
+    if (user.role === "admin" || user.role === "staff") {
+      userPhotos = await db
+        .select()
+        .from(photos)
+        .where(
+          user.organizationId
+            ? eq(photos.organizationId, user.organizationId)
+            : eq(photos.uploadedBy, session.user.id)
+        )
+        .orderBy(desc(photos.createdAt));
+    }
+    // Team Leads see all photos in their org
+    else if (user.accountType === "team_lead") {
+      userPhotos = await db
+        .select()
+        .from(photos)
+        .where(
+          user.organizationId
+            ? eq(photos.organizationId, user.organizationId)
+            : eq(photos.uploadedBy, session.user.id)
+        )
+        .orderBy(desc(photos.createdAt));
+    }
+    // Team Members only see photos with visibility = "all" (or null for legacy)
+    else {
+      userPhotos = await db
+        .select()
+        .from(photos)
+        .where(
+          and(
+            user.organizationId
+              ? eq(photos.organizationId, user.organizationId)
+              : eq(photos.uploadedBy, session.user.id),
+            or(
+              eq(photos.visibility, "all"),
+              eq(photos.visibility, null as any) // Legacy photos without visibility
+            )
+          )
+        )
+        .orderBy(desc(photos.createdAt));
+    }
 
     return NextResponse.json({ photos: userPhotos });
   } catch (error) {
@@ -50,6 +85,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const user = session.user as any;
     const { searchParams } = new URL(request.url);
     const photoId = searchParams.get("id");
 
@@ -67,8 +103,8 @@ export async function DELETE(request: NextRequest) {
       .where(
         and(
           eq(photos.id, photoId),
-          (session.user as any).organizationId
-            ? eq(photos.organizationId, (session.user as any).organizationId)
+          user.organizationId
+            ? eq(photos.organizationId, user.organizationId)
             : eq(photos.uploadedBy, session.user.id)
         )
       )
@@ -79,6 +115,16 @@ export async function DELETE(request: NextRequest) {
         { error: "Photo not found" },
         { status: 404 }
       );
+    }
+
+    // Only team leads/admins can delete owner_only photos
+    if (photo.visibility === "owner_only") {
+      if (user.role !== "admin" && user.role !== "staff" && user.accountType !== "team_lead") {
+        return NextResponse.json(
+          { error: "You don't have permission to delete this photo" },
+          { status: 403 }
+        );
+      }
     }
 
     // Delete from R2 storage

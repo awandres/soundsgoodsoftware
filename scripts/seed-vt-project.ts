@@ -82,7 +82,7 @@ async function seedVTProject() {
     process.exit(0);
   }
 
-  // Create the VT project
+  // Create the VT project with full data-driven schema
   const [project] = await db
     .insert(projects)
     .values({
@@ -97,6 +97,14 @@ async function seedVTProject() {
       totalWeeks: 12,
       agreementDate: new Date("2025-11-21"),
       contractValue: 600000, // $6,000.00 in cents
+      projectType: "full_platform",
+      deliverables: {
+        crm: { enabled: true, status: "in-progress", notes: "Client and member management" },
+        booking: { enabled: true, status: "pending", notes: "Trainer scheduling system" },
+        marketing: { enabled: true, status: "pending", notes: "Email marketing integration" },
+        admin: { enabled: true, status: "pending", notes: "Business analytics dashboard" },
+        website: { enabled: true, status: "in-progress", notes: "Public-facing website with trainer profiles" },
+      },
     })
     .returning();
 

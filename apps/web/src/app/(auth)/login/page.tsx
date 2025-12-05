@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@soundsgood/auth/client";
 import {
   Button,
@@ -16,8 +16,10 @@ import {
   Spinner,
 } from "@soundsgood/ui";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isNewAccount = searchParams.get("newAccount") === "true";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +57,9 @@ export default function LoginPage() {
       }
 
       console.log("✅ Login successful, redirecting to dashboard...");
-      // Redirect to dashboard on success
-      router.push("/dashboard");
+      // Redirect to dashboard on success (with welcome param for new accounts)
+      const redirectUrl = isNewAccount ? "/dashboard?welcome=new" : "/dashboard";
+      router.push(redirectUrl);
       router.refresh();
     } catch (err) {
       console.error("❌ Login exception:", err);
@@ -67,9 +70,9 @@ export default function LoginPage() {
   };
 
   const handleDemoLogin = async () => {
-    console.log("🎭 DEMO LOGIN: Auto-filling Vetted Trainers credentials...");
-    setEmail("client@vettedtrainers.com");
-    setPassword("client123");
+    console.log("🎭 DEMO LOGIN: Auto-filling demo client credentials...");
+    setEmail("demo@yourbiz.com");
+    setPassword("demo123");
     
     // Wait for state to update, then submit
     setTimeout(() => {
@@ -88,9 +91,14 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
             SG
           </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-2xl">
+            {isNewAccount ? "Sign in to get started" : "Welcome back"}
+          </CardTitle>
           <CardDescription>
-            Sign in to access your client portal
+            {isNewAccount 
+              ? "Your account is ready! Sign in to access your new portal."
+              : "Sign in to access your client portal"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,10 +175,10 @@ export default function LoginPage() {
               onClick={handleDemoLogin}
               disabled={isLoading}
             >
-              🎭 Demo Login (Vetted Trainers)
+              🎭 Demo Client Login
             </Button>
             <p className="mt-2 text-center text-xs text-muted-foreground">
-              Auto-fill credentials for testing
+              Auto-fill demo credentials for testing
             </p>
           </div>
           
@@ -186,3 +194,18 @@ export default function LoginPage() {
   );
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex justify-center py-12">
+            <Spinner size="lg" />
+          </CardContent>
+        </Card>
+      </main>
+    }>
+      <LoginForm />
+    </Suspense>
+  );
+}

@@ -14,6 +14,22 @@ export const documentTypes = [
 ] as const;
 export type DocumentType = (typeof documentTypes)[number];
 
+// Visibility enum values
+// - all: Visible to all org members
+// - owner_only: Only visible to Team Leads (contracts, invoices, etc.)
+export const documentVisibilities = ["all", "owner_only"] as const;
+export type DocumentVisibility = (typeof documentVisibilities)[number];
+
+// Default visibility by document type
+// Contracts and invoices are owner-only by default
+export const defaultDocumentVisibility: Record<DocumentType, DocumentVisibility> = {
+  contract: "owner_only",
+  invoice: "owner_only",
+  proposal: "owner_only",
+  roadmap: "all",
+  other: "all",
+};
+
 // Documents table
 export const documents = pgTable("documents", {
   id: text("id")
@@ -30,6 +46,12 @@ export const documents = pgTable("documents", {
   mimeType: text("mime_type"),
   version: integer("version").default(1),
   uploadedBy: text("uploaded_by").references(() => users.id),
+  
+  // Visibility control
+  // owner_only documents (contracts, invoices) are only visible to Team Leads
+  visibility: text("visibility", { enum: documentVisibilities }).default("all"),
+  
+  // Timestamps
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
@@ -49,4 +71,3 @@ export const documentsRelations = relations(documents, ({ one }) => ({
 // Infer types from schema
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
-

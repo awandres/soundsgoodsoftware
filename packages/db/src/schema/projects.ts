@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, json } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, json, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { organizations } from "./organizations";
 import { createId } from "../utils";
@@ -17,7 +17,38 @@ export const projectStatuses = [
 ] as const;
 export type ProjectStatus = (typeof projectStatuses)[number];
 
+// Project type enum - describes what kind of project is being delivered
+export const projectTypes = [
+  "full_platform",    // Complete business management system
+  "website_only",     // Just the public-facing website
+  "crm_only",         // Customer relationship management only
+  "booking_only",     // Booking/scheduling system only
+  "custom",           // Custom combination of features
+] as const;
+export type ProjectType = (typeof projectTypes)[number];
+
+// Deliverable status for project-level deliverables
+export const deliverableStatuses = ["pending", "in-progress", "complete"] as const;
+export type DeliverableStatus = (typeof deliverableStatuses)[number];
+
+// Type for project deliverables (what's being built)
+export interface ProjectDeliverable {
+  enabled: boolean;
+  status: DeliverableStatus;
+  notes?: string;
+}
+
+export interface ProjectDeliverables {
+  crm?: ProjectDeliverable;
+  booking?: ProjectDeliverable;
+  marketing?: ProjectDeliverable;
+  admin?: ProjectDeliverable;
+  website?: ProjectDeliverable;
+  custom?: { name: string; enabled: boolean; status: DeliverableStatus; notes?: string }[];
+}
+
 // Projects table - one per client project
+// All fields optional except name - allows partial project creation
 export const projects = pgTable("projects", {
   id: text("id")
     .primaryKey()
@@ -25,21 +56,29 @@ export const projects = pgTable("projects", {
   organizationId: text("organization_id")
     .references(() => organizations.id),
   
-  // Project info
+  // Required - only name is required
   name: text("name").notNull(),
+  
+  // Optional - display as TBD/Unassigned when null
   description: text("description"),
-  clientName: text("client_name").notNull(),
+  clientName: text("client_name"),              // Now optional - shows "Unassigned" when null
   status: text("status", { enum: projectStatuses }).default("planning"),
   
-  // Timeline
+  // Timeline - all optional, shows "TBD" when null
   startDate: timestamp("start_date", { withTimezone: true }),
   targetEndDate: timestamp("target_end_date", { withTimezone: true }),
   actualEndDate: timestamp("actual_end_date", { withTimezone: true }),
-  totalWeeks: integer("total_weeks").default(12),
+  totalWeeks: integer("total_weeks"),           // Removed default - shows "TBD" when null
   
-  // Metadata
+  // Contract info - optional
   agreementDate: timestamp("agreement_date", { withTimezone: true }),
-  contractValue: integer("contract_value"), // in cents
+  contractValue: integer("contract_value"),     // in cents
+  
+  // Project type/template - describes what's being built
+  projectType: text("project_type", { enum: projectTypes }),
+  
+  // Deliverables checklist - what components are included
+  deliverables: jsonb("deliverables").$type<ProjectDeliverables>(),
   
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),

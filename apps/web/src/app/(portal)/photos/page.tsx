@@ -22,60 +22,42 @@ interface StagedFile {
   id: string;
 }
 
-const CATEGORIES = [
+// Generic categories that work for any business type
+const GENERIC_CATEGORIES = [
   { value: "uncategorized", label: "Uncategorized" },
-  { value: "trainer", label: "Trainer Photos" },
-  { value: "facility", label: "Facility" },
-  { value: "event", label: "Events" },
+  { value: "branding", label: "Branding / Logo" },
+  { value: "team", label: "Team / People" },
+  { value: "location", label: "Location / Space" },
+  { value: "products", label: "Products / Services" },
   { value: "marketing", label: "Marketing" },
-  { value: "team", label: "Team" },
+  { value: "events", label: "Events" },
   { value: "other", label: "Other" },
 ];
 
-// Industry-specific suggested tags for personal trainers
+// Hard-coded tags - generic set that works for all business types
 const SUGGESTED_TAGS = [
-  // Training types
-  "personal training",
-  "one-on-one training",
-  "group fitness",
-  "strength training",
-  "cardio workout",
-  "HIIT",
-  "functional training",
-  "weight loss",
-  "muscle building",
-  // Recovery & wellness
-  "recovery",
-  "stretching",
-  "mobility",
-  "flexibility",
-  "massage therapy",
-  "foam rolling",
-  "cool down",
-  "warm up",
-  // Equipment & facility
-  "gym equipment",
-  "free weights",
-  "dumbbells",
-  "kettlebells",
-  "resistance bands",
-  "treadmill",
-  "gym facility",
-  "training studio",
-  // People & action
-  "fitness trainer",
-  "certified trainer",
-  "client workout",
-  "exercise demonstration",
-  "proper form",
-  "fitness motivation",
-  // Specialty
-  "senior fitness",
-  "athletic training",
-  "sports performance",
-  "nutrition coaching",
-  "body transformation",
-  "before and after",
+  "team",
+  "headshot",
+  "group-photo",
+  "facility",
+  "interior",
+  "exterior",
+  "products",
+  "services",
+  "equipment",
+  "workspace",
+  "events",
+  "customers",
+  "testimonial",
+  "behind-scenes",
+  "logo",
+  "branding",
+  "marketing",
+  "social-media",
+  "hero-image",
+  "banner",
+  "before-after",
+  "portfolio",
 ];
 
 interface Photo {
@@ -107,10 +89,44 @@ export default function PhotosPage() {
       !tags.includes(suggestion) &&
       suggestion.toLowerCase().includes(tagInput.toLowerCase())
   ).slice(0, 12); // Show max 12 suggestions when filtering
+  
+  // Format tag label (convert kebab-case to Title Case)
+  const formatTagLabel = (tag: string): string => {
+    return tag
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
-  // Fetch existing photos
+  // Fetch existing photos with abort support
   useEffect(() => {
+    const abortController = new AbortController();
+    
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch("/api/photos", {
+          signal: abortController.signal,
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setPhotos(data.photos);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error("Failed to fetch photos:", error);
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     fetchPhotos();
+    
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   // Cleanup preview URLs when component unmounts or files change
@@ -119,20 +135,6 @@ export default function PhotosPage() {
       stagedFiles.forEach((sf) => URL.revokeObjectURL(sf.preview));
     };
   }, [stagedFiles]);
-
-  const fetchPhotos = async () => {
-    try {
-      const response = await fetch("/api/photos");
-      if (response.ok) {
-        const data = await response.json();
-        setPhotos(data.photos);
-      }
-    } catch (error) {
-      console.error("Failed to fetch photos:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Tag management functions
   const addTag = (tag: string) => {
@@ -317,11 +319,11 @@ export default function PhotosPage() {
           <CardTitle>Upload Photos</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Category selector */}
+          {/* Category selector - generic categories for all business types */}
           <div className="mb-4">
             <Label className="mb-2 block">Category</Label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
+              {GENERIC_CATEGORIES.map((cat) => (
                 <Button
                   key={cat.value}
                   variant={selectedCategory === cat.value ? "default" : "outline"}
@@ -492,7 +494,7 @@ export default function PhotosPage() {
                         disabled={isUploading}
                         className="rounded-full border border-muted-foreground/30 bg-muted/50 px-2.5 py-1 text-xs text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
                       >
-                        + {suggestion}
+                        + {formatTagLabel(suggestion)}
                       </button>
                     ))}
                     {!tagInput && SUGGESTED_TAGS.filter(t => !tags.includes(t)).length > 12 && (

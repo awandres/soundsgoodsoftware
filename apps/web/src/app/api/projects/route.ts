@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@soundsgood/auth";
-import { db, projects, projectPhases, projectTasks, projectDeadlines, users, eq, desc, asc } from "@soundsgood/db";
+import { 
+  db, 
+  projects, 
+  projectPhases, 
+  projectTasks, 
+  projectDeadlines, 
+  organizations,
+  users, 
+  eq, 
+  desc, 
+  asc,
+  calculateCurrentWeek,
+  calculateProjectProgress,
+  calculateWeeksRemaining,
+} from "@soundsgood/db";
 
 // Check if user is admin (either by role or localhost dev mode)
 async function isAdmin(userId: string, request: NextRequest): Promise<boolean> {
@@ -83,19 +97,23 @@ export async function GET(request: NextRequest) {
         .where(eq(projectDeadlines.projectId, projectId))
         .orderBy(asc(projectDeadlines.date));
 
-      // Calculate stats
+      // Calculate stats - handles partial data gracefully
       const completedPhases = phases.filter(p => p.status === "completed").length;
       const currentPhase = phases.find(p => p.status === "in-progress");
       const totalPhases = phases.length;
 
-      // Calculate current week
-      const startDate = project.startDate ? new Date(project.startDate) : new Date(project.agreementDate || Date.now());
-      const now = new Date();
-      const currentWeek = Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)));
+      // Calculate current week - handles null startDate
+      const currentWeek = calculateCurrentWeek(project.startDate || project.agreementDate);
 
-      // Calculate weeks remaining
-      const targetEnd = project.targetEndDate ? new Date(project.targetEndDate) : null;
-      const weeksRemaining = targetEnd ? Math.ceil((targetEnd.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000)) : null;
+      // Calculate weeks remaining - handles null targetEndDate  
+      const weeksRemaining = calculateWeeksRemaining(project.targetEndDate);
+      
+      // Calculate progress percentage - handles no phases
+      const progressPercent = calculateProjectProgress({
+        completedPhases,
+        totalPhases,
+        currentPhaseInProgress: !!currentPhase,
+      });
 
       // Check if user is admin
       const userIsAdmin = await isAdmin(session.user.id, request);
@@ -111,22 +129,57 @@ export async function GET(request: NextRequest) {
           currentPhase,
           currentWeek,
           weeksRemaining,
-          progressPercent: Math.round(((completedPhases + (currentPhase ? 0.5 : 0)) / totalPhases) * 100),
+          progressPercent,
+          // Additional data for UI
+          hasPhases: totalPhases > 0,
+          isSetupIncomplete: totalPhases === 0 || !project.startDate,
         },
         isAdmin: userIsAdmin,
       });
     }
 
-    // List all projects for the organization
-    const userProjects = await db
-      .select()
-      .from(projects)
-      .where(
-        orgId
-          ? eq(projects.organizationId, orgId)
-          : eq(projects.organizationId, session.user.id) // fallback
-      )
-      .orderBy(desc(projects.createdAt));
+    // Check if user is admin
+    const userIsAdmin = await isAdmin(session.user.id, request);
+    const showAll = searchParams.get("all") === "true";
+    const includeOrgDetails = searchParams.get("includeOrg") === "true";
+
+    // Admins can see all projects when requesting with ?all=true
+    let userProjects;
+    if (userIsAdmin && showAll) {
+      if (includeOrgDetails) {
+        // Include organization details for brand colors
+        const projectsWithOrgs = await db
+          .select({
+            project: projects,
+            organization: organizations,
+          })
+          .from(projects)
+          .leftJoin(organizations, eq(projects.organizationId, organizations.id))
+          .orderBy(desc(projects.createdAt));
+
+        return NextResponse.json({ 
+          projects: projectsWithOrgs.map(row => ({
+            ...row.project,
+            organization: row.organization,
+          }))
+        });
+      } else {
+        userProjects = await db
+          .select()
+          .from(projects)
+          .orderBy(desc(projects.createdAt));
+      }
+    } else {
+      userProjects = await db
+        .select()
+        .from(projects)
+        .where(
+          orgId
+            ? eq(projects.organizationId, orgId)
+            : eq(projects.organizationId, session.user.id) // fallback
+        )
+        .orderBy(desc(projects.createdAt));
+    }
 
     return NextResponse.json({ projects: userProjects });
   } catch (error) {
@@ -227,6 +280,132 @@ export async function PATCH(request: NextRequest) {
     console.error("Update deliverables error:", error);
     return NextResponse.json(
       { error: "Failed to update deliverables" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST - Create a new project (admin only)
+ * 
+ * Only name is required - all other fields are optional.
+ * Allows partial project creation with progressive enhancement.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check admin access
+    const userIsAdmin = await isAdmin(session.user.id, request);
+    if (!userIsAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const {
+      name,
+      organizationId,
+      description,
+      clientName,
+      status,
+      startDate,
+      targetEndDate,
+      totalWeeks,
+      agreementDate,
+      contractValue,
+      projectType,
+      deliverables,
+    } = body;
+
+    // Only name is required
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      return NextResponse.json(
+        { error: "Project name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Create the project with all provided fields
+    const [newProject] = await db
+      .insert(projects)
+      .values({
+        name: name.trim(),
+        organizationId: organizationId || null,
+        description: description || null,
+        clientName: clientName || null,
+        status: status || "planning",
+        startDate: startDate ? new Date(startDate) : null,
+        targetEndDate: targetEndDate ? new Date(targetEndDate) : null,
+        totalWeeks: totalWeeks || null,
+        agreementDate: agreementDate ? new Date(agreementDate) : null,
+        contractValue: contractValue || null,
+        projectType: projectType || null,
+        deliverables: deliverables || null,
+      })
+      .returning();
+
+    return NextResponse.json({ project: newProject }, { status: 201 });
+  } catch (error) {
+    console.error("Create project error:", error);
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE - Delete a project (admin only)
+ * 
+ * This will cascade delete all phases, tasks, and deadlines.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check admin access
+    const userIsAdmin = await isAdmin(session.user.id, request);
+    if (!userIsAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get("id");
+
+    if (!projectId) {
+      return NextResponse.json({ error: "Project ID required" }, { status: 400 });
+    }
+
+    // Delete the project (cascades to phases, tasks, deadlines)
+    const [deletedProject] = await db
+      .delete(projects)
+      .where(eq(projects.id, projectId))
+      .returning();
+
+    if (!deletedProject) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      message: "Project deleted successfully",
+      project: deletedProject 
+    });
+  } catch (error) {
+    console.error("Delete project error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete project" },
       { status: 500 }
     );
   }
